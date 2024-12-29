@@ -1,32 +1,84 @@
-import streamlit as st
+import pygame
+import sys
 from pytube import YouTube
 
-# Streamlit app title
-st.title("YouTube 4K Video Downloader")
+# Initialize pygame
+pygame.init()
 
-# Input box for the YouTube video URL
-url = st.text_input("Enter the URL of the YouTube video:")
+# Set up the display
+screen = pygame.display.set_mode((600, 400))
+pygame.display.set_caption('YouTube 4K Downloader')
 
-if url:
+# Set up font and colors
+font = pygame.font.Font(None, 36)
+input_font = pygame.font.Font(None, 28)
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+GREEN = (0, 255, 0)
+RED = (255, 0, 0)
+
+# Function to draw text
+def draw_text(text, font, color, x, y):
+    label = font.render(text, True, color)
+    screen.blit(label, (x, y))
+
+# Function to download the video
+def download_video(url):
     try:
-        # Create a YouTube object
         yt = YouTube(url)
-
-        # Get the 4K stream (if available)
         stream = yt.streams.filter(res="2160p", progressive=True, file_extension="mp4").first()
 
-        # Check if 4K stream is available
         if stream:
-            st.write("Downloading 4K video...")
-
-            # Show the video title
-            st.write(f"Title: {yt.title}")
-
-            # Download the video
             stream.download()
-
-            st.success("Video downloaded successfully!")
+            return "Download successful!"
         else:
-            st.error("4K stream is not available for this video.")
+            return "4K stream not available."
     except Exception as e:
-        st.error(f"Error: {e}")
+        return f"Error: {e}"
+
+# Game loop
+url_input = ''
+downloading_message = ''
+input_active = False
+clock = pygame.time.Clock()
+
+while True:
+    screen.fill(WHITE)
+    
+    # Event handling
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+        
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            # Toggle the input field active state
+            input_rect = pygame.Rect(150, 150, 300, 40)
+            if input_rect.collidepoint(event.pos):
+                input_active = not input_active
+
+        if event.type == pygame.KEYDOWN:
+            if input_active:
+                if event.key == pygame.K_RETURN:
+                    # When the user presses Enter, attempt to download the video
+                    downloading_message = download_video(url_input)
+                    url_input = ''  # Clear input field
+                elif event.key == pygame.K_BACKSPACE:
+                    url_input = url_input[:-1]
+                else:
+                    url_input += event.unicode
+
+    # Draw the input box
+    input_rect = pygame.Rect(150, 150, 300, 40)
+    pygame.draw.rect(screen, BLACK, input_rect, 2)
+
+    # Draw the current input text
+    draw_text(url_input, input_font, BLACK, 160, 160)
+
+    # Draw the message after attempting the download
+    if downloading_message:
+        draw_text(downloading_message, font, GREEN if "successful" in downloading_message else RED, 150, 220)
+
+    # Update the display
+    pygame.display.flip()
+    clock.tick(30)
