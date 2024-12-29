@@ -1,84 +1,53 @@
-import pygame
-import sys
-from pytube import YouTube
+import streamlit as st
+import random
+import time
 
-# Initialize pygame
-pygame.init()
+# Define the board with snakes and ladders
+snakes = {16: 6, 47: 26, 49: 11, 56: 53, 62: 19, 64: 60, 87: 24, 93: 73, 95: 75, 98: 78}
+ladders = {1: 38, 4: 14, 9: 31, 21: 42, 28: 84, 36: 44, 51: 67, 71: 91, 80: 100}
 
-# Set up the display
-screen = pygame.display.set_mode((600, 400))
-pygame.display.set_caption('YouTube 4K Downloader')
+# Initialize session state
+if "position" not in st.session_state:
+    st.session_state.position = 0
+if "game_over" not in st.session_state:
+    st.session_state.game_over = False
 
-# Set up font and colors
-font = pygame.font.Font(None, 36)
-input_font = pygame.font.Font(None, 28)
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-GREEN = (0, 255, 0)
-RED = (255, 0, 0)
+st.title("Snake and Ladder Game 🎲🐍🪜")
 
-# Function to draw text
-def draw_text(text, font, color, x, y):
-    label = font.render(text, True, color)
-    screen.blit(label, (x, y))
+# Display the board
+st.write("Snakes: ", snakes)
+st.write("Ladders: ", ladders)
+st.write(f"Your current position: {st.session_state.position}")
 
-# Function to download the video
-def download_video(url):
-    try:
-        yt = YouTube(url)
-        stream = yt.streams.filter(res="2160p", progressive=True, file_extension="mp4").first()
+# Roll the die
+if not st.session_state.game_over:
+    if st.button("Roll the Die"):
+        roll = random.randint(1, 6)
+        st.write(f"You rolled a {roll}!")
 
-        if stream:
-            stream.download()
-            return "Download successful!"
+        # Update position
+        new_position = st.session_state.position + roll
+        if new_position > 100:
+            st.write("Roll exceeds position 100. Stay at current position.")
         else:
-            return "4K stream not available."
-    except Exception as e:
-        return f"Error: {e}"
+            st.session_state.position = new_position
+            st.write(f"You moved to position {st.session_state.position}")
 
-# Game loop
-url_input = ''
-downloading_message = ''
-input_active = False
-clock = pygame.time.Clock()
+            # Check for snakes or ladders
+            if st.session_state.position in snakes:
+                st.session_state.position = snakes[st.session_state.position]
+                st.write(f"Oh no! A snake! You slid down to {st.session_state.position}")
+            elif st.session_state.position in ladders:
+                st.session_state.position = ladders[st.session_state.position]
+                st.write(f"Yay! A ladder! You climbed up to {st.session_state.position}")
 
-while True:
-    screen.fill(WHITE)
-    
-    # Event handling
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit()
-        
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            # Toggle the input field active state
-            input_rect = pygame.Rect(150, 150, 300, 40)
-            if input_rect.collidepoint(event.pos):
-                input_active = not input_active
+            # Check for win condition
+            if st.session_state.position == 100:
+                st.session_state.game_over = True
+                st.write("🎉 Congratulations! You won the game! 🎉")
 
-        if event.type == pygame.KEYDOWN:
-            if input_active:
-                if event.key == pygame.K_RETURN:
-                    # When the user presses Enter, attempt to download the video
-                    downloading_message = download_video(url_input)
-                    url_input = ''  # Clear input field
-                elif event.key == pygame.K_BACKSPACE:
-                    url_input = url_input[:-1]
-                else:
-                    url_input += event.unicode
-
-    # Draw the input box
-    input_rect = pygame.Rect(150, 150, 300, 40)
-    pygame.draw.rect(screen, BLACK, input_rect, 2)
-
-    # Draw the current input text
-    draw_text(url_input, input_font, BLACK, 160, 160)
-
-    # Draw the message after attempting the download
-    if downloading_message:
-        draw_text(downloading_message, font, GREEN if "successful" in downloading_message else RED, 150, 220)
-
-    # Update the display
-    pygame.display.flip()
-    clock.tick(30)
+# Reset the game
+if st.session_state.game_over or st.button("Restart Game"):
+    st.session_state.position = 0
+    st.session_state.game_over = False
+    st.write("Game reset. Roll to start again!")
