@@ -2,7 +2,7 @@ import streamlit as st
 import yt_dlp as youtube_dl
 import tempfile
 import os
-
+import ffmpeg
 def download_video(url, option='highest_resolution'):
     try:
         # Define options for yt-dlp based on the user's choice
