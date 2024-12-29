@@ -11,7 +11,7 @@ if "position" not in st.session_state:
 if "game_over" not in st.session_state:
     st.session_state.game_over = False
 
-st.title("Snake and Ladder Game 🎲🐍🪜")
+st.title("🎲 Snake and Ladder Game 🐍🪜")
 
 # Function to draw the grid
 def draw_grid(current_position):
@@ -35,49 +35,53 @@ def draw_grid(current_position):
         cols = st.columns(10)
         for idx, cell in enumerate(row):
             if cell == current_position:
-                cols[idx].markdown(f"**:blue[{cell}]**")
+                cols[idx].markdown(
+                    f'<div style="background-color:#ADD8E6; border-radius:5px; padding:5px; text-align:center; font-weight:bold;">{cell}</div>',
+                    unsafe_allow_html=True,
+                )
             elif cell in snakes:
-                cols[idx].markdown(f"**:red[{cell}]**")
+                cols[idx].markdown(f"**:red[{cell} 🐍]**")
             elif cell in ladders:
-                cols[idx].markdown(f"**:green[{cell}]**")
+                cols[idx].markdown(f"**:green[{cell} 🪜]**")
             else:
-                cols[idx].write(cell)
+                cols[idx].markdown(f"<div style='text-align:center;'>{cell}</div>", unsafe_allow_html=True)
 
 # Display the grid
-st.write("### Game Board")
+st.write("### 🕹️ Game Board")
 draw_grid(st.session_state.position)
 
-# Display player position and roll the die
-st.write(f"Your current position: {st.session_state.position}")
+# Game controls
+st.write(f"🎯 Your current position: **{st.session_state.position}**")
 
 if not st.session_state.game_over:
-    if st.button("Roll the Die"):
+    if st.button("🎲 Roll the Die"):
         roll = random.randint(1, 6)
-        st.write(f"You rolled a {roll}!")
+        st.write(f"🎲 You rolled a **{roll}**!")
 
         # Update position
         new_position = st.session_state.position + roll
         if new_position > 100:
-            st.write("Roll exceeds position 100. Stay at current position.")
+            st.write("🚫 Roll exceeds position 100. Stay at current position.")
         else:
             st.session_state.position = new_position
-            st.write(f"You moved to position {st.session_state.position}")
+            st.write(f"🚶 You moved to position **{st.session_state.position}**")
 
             # Check for snakes or ladders
             if st.session_state.position in snakes:
                 st.session_state.position = snakes[st.session_state.position]
-                st.write(f"Oh no! A snake! You slid down to {st.session_state.position}")
+                st.write(f"🐍 Oh no! A snake! You slid down to **{st.session_state.position}**")
             elif st.session_state.position in ladders:
                 st.session_state.position = ladders[st.session_state.position]
-                st.write(f"Yay! A ladder! You climbed up to {st.session_state.position}")
+                st.write(f"🪜 Yay! A ladder! You climbed up to **{st.session_state.position}**")
 
             # Check for win condition
             if st.session_state.position == 100:
                 st.session_state.game_over = True
-                st.write("🎉 Congratulations! You won the game! 🎉")
+                st.balloons()
+                st.write("🎉 **Congratulations! You won the game!** 🎉")
 
 # Reset the game
-if st.session_state.game_over or st.button("Restart Game"):
+if st.session_state.game_over or st.button("🔄 Restart Game"):
     st.session_state.position = 0
     st.session_state.game_over = False
-    st.write("Game reset. Roll to start again!")
+    st.write("🔄 Game reset. Roll to start again!")
