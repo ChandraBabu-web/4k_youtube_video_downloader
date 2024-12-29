@@ -1,48 +1,41 @@
 import streamlit as st
-from pytube import YouTube
-from pytube.exceptions import PytubeError
+import yt_dlp as youtube_dl
+
+def download_video(url, option='highest_resolution'):
+    try:
+        options = {
+            'format': 'bestvideo+bestaudio/best',
+            'outtmpl': 'downloads/%(title)s.%(ext)s',  # Path to save the video
+        }
+
+        # Check if the option is 4k, otherwise download in highest resolution
+        if option == '4k':
+            options['format'] = 'bestvideo[height=2160]+bestaudio/best[height=2160]/best'
+
+        with youtube_dl.YoutubeDL(options) as ydl:
+            ydl.download([url])
+
+        st.success("Download complete!")
+
+    except Exception as e:
+        st.error(f"An error occurred: {str(e)}")
 
 def main():
-    path = st.text_input('Enter URL of any youtube video')
+    st.title("YouTube 4K Video Downloader")
+    
+    url = st.text_input("Enter the YouTube video URL")
+    
     option = st.selectbox(
         'Select type of download',
         ('audio', 'highest_resolution', 'lowest_resolution', '4k')
     )
+    
+    if url:
+        if st.button("Download Video"):
+            download_video(url, option)
+        
+        if st.button("View Video"):
+            st.video(url)
 
-    if path:
-        try:
-            video_object = YouTube(path)
-            st.write("Title of Video: " + str(video_object.title))
-            st.write("Number of Views: " + str(video_object.views))
-
-            if option == 'audio':
-                st.write("Downloading audio...")
-                video_object.streams.get_audio_only().download()
-                st.write("Audio download complete.")
-
-            elif option == 'highest_resolution':
-                st.write("Downloading highest resolution...")
-                video_object.streams.get_highest_resolution().download()
-                st.write("Download complete.")
-
-            elif option == 'lowest_resolution':
-                st.write("Downloading lowest resolution...")
-                video_object.streams.get_lowest_resolution().download()
-                st.write("Download complete.")
-
-            elif option == '4k':
-                # Select 4K resolution video stream (2160p)
-                st.write("Downloading 4K resolution...")
-                video_object.streams.filter(res="2160p", progressive=True).first().download()
-                st.write("4K video download complete.")
-
-        except PytubeError as e:
-            st.error(f"Error: {str(e)}")
-        except Exception as e:
-            st.error(f"An unexpected error occurred: {str(e)}")
-
-    if st.button("View Video"):
-        st.video(path)
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
