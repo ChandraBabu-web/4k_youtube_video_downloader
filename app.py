@@ -1,6 +1,5 @@
 import streamlit as st
 import random
-import time
 
 # Define the board with snakes and ladders
 snakes = {16: 6, 47: 26, 49: 11, 56: 53, 62: 19, 64: 60, 87: 24, 93: 73, 95: 75, 98: 78}
@@ -14,12 +13,43 @@ if "game_over" not in st.session_state:
 
 st.title("Snake and Ladder Game 🎲🐍🪜")
 
-# Display the board
-st.write("Snakes: ", snakes)
-st.write("Ladders: ", ladders)
+# Function to draw the grid
+def draw_grid(current_position):
+    # Create a 10x10 grid
+    rows = 10
+    cols = 10
+    grid_numbers = [[None for _ in range(cols)] for _ in range(rows)]
+
+    # Fill the grid with numbers from 1 to 100
+    num = 100
+    for i in range(rows):
+        for j in range(cols):
+            if i % 2 == 0:  # Left to right
+                grid_numbers[rows - 1 - i][j] = num
+            else:  # Right to left
+                grid_numbers[rows - 1 - i][cols - 1 - j] = num
+            num -= 1
+
+    # Display the grid
+    for row in grid_numbers:
+        cols = st.columns(10)
+        for idx, cell in enumerate(row):
+            if cell == current_position:
+                cols[idx].markdown(f"**:blue[{cell}]**")
+            elif cell in snakes:
+                cols[idx].markdown(f"**:red[{cell}]**")
+            elif cell in ladders:
+                cols[idx].markdown(f"**:green[{cell}]**")
+            else:
+                cols[idx].write(cell)
+
+# Display the grid
+st.write("### Game Board")
+draw_grid(st.session_state.position)
+
+# Display player position and roll the die
 st.write(f"Your current position: {st.session_state.position}")
 
-# Roll the die
 if not st.session_state.game_over:
     if st.button("Roll the Die"):
         roll = random.randint(1, 6)
