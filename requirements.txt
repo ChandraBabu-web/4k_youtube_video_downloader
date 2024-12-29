@@ -2,4 +2,4 @@ moviepy
 streamlit 
 pytube==15.0.0
 yt-dlp
-ffmpeg==1.4
+ffmpeg-python
