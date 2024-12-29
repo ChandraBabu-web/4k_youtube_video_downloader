@@ -1,51 +1,34 @@
 import streamlit as st
 import yt_dlp as youtube_dl
-from moviepy.editor import VideoFileClip, AudioFileClip
 
 def download_video(url, option='highest_resolution'):
     try:
-        # Define download options
+        # Define options for yt-dlp based on the user's choice
         options = {
-            'format': 'bestvideo+bestaudio/best',
-            'outtmpl': 'downloads/%(title)s.%(ext)s',  # Path to save the video
-            'noplaylist': True,  # Don't download playlists
+            'outtmpl': 'downloads/%(title)s.%(ext)s',  # Path to save the file
         }
 
-        # Check if the user selected 4K
-        if option == '4k':
-            options['format'] = 'bestvideo[height=2160]+bestaudio/best[height=2160]/best'
-        
-        # Other option choices: audio only, lowest resolution, etc.
+        # Set the format selection based on the option chosen
         if option == 'audio':
-            options['format'] = 'bestaudio/best'
+            options['format'] = 'bestaudio/best'  # Only download the best audio
+        elif option == 'highest_resolution':
+            options['format'] = 'bestvideo+bestaudio/best'  # Highest resolution video with audio
         elif option == 'lowest_resolution':
-            options['format'] = 'worstvideo+bestaudio/best'
+            options['format'] = 'worstvideo+bestaudio/worst'  # Lowest resolution video with audio
+        elif option == '4k':
+            options['format'] = 'bestvideo[height=2160]+bestaudio/best[height=2160]/best'  # 4K video
 
-        # Download video and audio separately using yt-dlp
+        # Download video/audio using yt-dlp
         with youtube_dl.YoutubeDL(options) as ydl:
-            info_dict = ydl.extract_info(url, download=True)
-            video_file = ydl.prepare_filename(info_dict).replace('.webm', '.mp4')  # You can handle the file extensions accordingly
-            audio_file = ydl.prepare_filename(info_dict).replace('.mp4', '.webm')  # Handle audio format
+            ydl.download([url])
 
-        # Merge video and audio using moviepy
-        video_clip = VideoFileClip(video_file)
-        audio_clip = AudioFileClip(audio_file)
-
-        # Set the audio of the video clip
-        video_clip = video_clip.set_audio(audio_clip)
-
-        # Output merged video
-        output_file = 'downloads/merged_video.mp4'
-        video_clip.write_videofile(output_file, codec='libx264', audio_codec='aac')
-
-        st.success("Download and merge complete!")
-        st.download_button("Download Merged Video", output_file)
+        st.success("Download complete!")
 
     except Exception as e:
         st.error(f"An error occurred: {str(e)}")
 
 def main():
-    st.title("YouTube Video Downloader (4K Supported)")
+    st.title("YouTube Video Downloader")
 
     url = st.text_input("Enter the YouTube video URL")
 
